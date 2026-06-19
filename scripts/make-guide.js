@@ -145,11 +145,12 @@ wrapped(
 
 // ---------- 2. What it accepts ----------
 heading('2. What it accepts and produces');
-kv('Image formats:', 'JPG, JPEG, PNG, and HEIC/HEIF (the format iPhones use).');
+kv('Image formats:', 'JPG, JPEG, PNG, HEIC/HEIF (iPhone photos), WebP, TIFF, GIF, and AVIF.');
 kv('Image sizes:', 'No size limit when you run it on your own computer. The live web demo is capped at about 4.5 MB per upload (explained in section 6).');
 kv('Number of images:', 'As many as you like in one go — each becomes one page of the PDF, in the order you add them.');
 kv('Output:', 'A single combined PDF named images.pdf, one image per page, downloaded straight to your device.');
 kv('What it does:', 'Auto-rotate using photo orientation, resize very large images down to a 2000px long edge, and re-encode as JPEG at ~75% quality for a much smaller file.');
+kv('Bad files:', 'Any file it cannot read (corrupt, or not a real image) is skipped with a clear message, and the rest still convert — one bad file never breaks the whole batch.');
 
 // ---------- 3. How to use ----------
 heading('3. How to use it');
@@ -175,7 +176,7 @@ wrapped('Built with Node.js (plain JavaScript, ES modules). No framework on the 
 spacer(4);
 kv('express', 'The web server. Serves the page and exposes the upload endpoint POST /api/convert.');
 kv('multer', 'Receives the uploaded files as in-memory buffers (multipart form handling), no temp files.');
-kv('sharp', 'Fast image engine: auto-rotate via EXIF, resize, and re-encode to compressed JPEG.');
+kv('sharp', 'Fast image engine: reads PNG/JPEG/WebP/TIFF/GIF/AVIF, auto-rotates via EXIF, resizes, and re-encodes to compressed JPEG.');
 kv('heic-convert', 'Decodes iPhone HEIC/HEIF photos to JPEG (sharp cannot read HEIC on its own).');
 kv('pdf-lib', 'Builds the final PDF in pure JavaScript: one embedded image per page.');
 kv('node:test + supertest', 'Built-in test runner plus HTTP testing; simulates both web and mobile uploads.');
@@ -184,7 +185,7 @@ wrapped('Project structure:', { f: bold });
 bullet('src/ — the core pipeline: config.js, standardize.js, compress.js, buildPdf.js, pipeline.js');
 bullet('server.js — the Express server and the /api/convert route');
 bullet('public/ — the web page (index.html, app.js, styles.css)');
-bullet('test/ — unit + upload tests (10 passing; ~93% line coverage)');
+bullet('test/ — unit + upload tests (15 passing; covers every format + corrupt-file handling)');
 
 // ---------- 6. Deployment + the important note ----------
 heading('6. Deployment and the important note');
