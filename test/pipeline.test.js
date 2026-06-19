@@ -11,7 +11,7 @@ import { standardizeToJpeg } from '../src/standardize.js';
 import { compress } from '../src/compress.js';
 import { buildPdf } from '../src/buildPdf.js';
 import { imagesToPdf } from '../src/pipeline.js';
-import { MAX_EDGE } from '../src/config.js';
+import { MAX_EDGE, PAGE_WIDTH, PAGE_HEIGHT } from '../src/config.js';
 import {
   makePng,
   makeJpeg,
@@ -57,14 +57,23 @@ test('compress caps dimensions at MAX_EDGE and shrinks file size', async () => {
   assert.ok(out.length < big.length, 'compressed output should be smaller than input');
 });
 
-test('buildPdf creates one page per image', async () => {
-  const a = await makeJpeg(120, 80);
-  const b = await makeJpeg(80, 120);
-  const bytes = await buildPdf([a, b]);
+test('buildPdf makes one uniform A4 page per image, regardless of image shape', async () => {
+  // Deliberately different shapes: square, wide landscape, tall portrait.
+  const square = await makeJpeg(500, 500);
+  const wide = await makeJpeg(1200, 300);
+  const tall = await makeJpeg(300, 1200);
+  const bytes = await buildPdf([square, wide, tall]);
 
   assert.ok(isPdf(bytes), 'output should be a PDF');
   const doc = await PDFDocument.load(bytes);
-  assert.equal(doc.getPageCount(), 2, 'should have 2 pages');
+  assert.equal(doc.getPageCount(), 3, 'should have 3 pages');
+
+  // Every page must be the SAME A4 size (this is the "standardized" guarantee).
+  for (const page of doc.getPages()) {
+    const { width, height } = page.getSize();
+    assert.ok(Math.abs(width - PAGE_WIDTH) < 0.5, `page width ${width} should be A4 (${PAGE_WIDTH})`);
+    assert.ok(Math.abs(height - PAGE_HEIGHT) < 0.5, `page height ${height} should be A4 (${PAGE_HEIGHT})`);
+  }
 });
 
 test('imagesToPdf accepts every supported format (png/jpeg/webp/tiff/gif/avif)', async () => {

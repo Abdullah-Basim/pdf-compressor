@@ -126,7 +126,7 @@ function kv(key, val) {
 // ---------- Title banner (page 1) ----------
 page.drawRectangle({ x: 0, y: PAGE_H - 120, width: PAGE_W, height: 120, color: ACCENT });
 page.drawText('Images -> PDF', { x: MARGIN, y: PAGE_H - 60, size: 28, font: bold, color: WHITE });
-page.drawText('Image to compressed-PDF tool — complete guide', {
+page.drawText('Image to compressed-PDF tool — user & technical guide', {
   x: MARGIN, y: PAGE_H - 84, size: 12, font, color: rgb(0.9, 0.93, 1),
 });
 page.drawText(`Prepared ${DATE}`, { x: MARGIN, y: PAGE_H - 102, size: 10, font, color: rgb(0.85, 0.9, 1) });
@@ -146,10 +146,10 @@ wrapped(
 // ---------- 2. What it accepts ----------
 heading('2. What it accepts and produces');
 kv('Image formats:', 'JPG, JPEG, PNG, HEIC/HEIF (iPhone photos), WebP, TIFF, GIF, and AVIF.');
-kv('Image sizes:', 'No size limit when you run it on your own computer. The live web demo is capped at about 4.5 MB per upload (explained in section 6).');
+kv('Image sizes:', 'No size limit. Upload tiny logos or 50 MB photos — there is no cap when you run it on your own computer.');
 kv('Number of images:', 'As many as you like in one go — each becomes one page of the PDF, in the order you add them.');
-kv('Output:', 'A single combined PDF named images.pdf, one image per page, downloaded straight to your device.');
-kv('What it does:', 'Auto-rotate using photo orientation, resize very large images down to a 2000px long edge, and re-encode as JPEG at ~75% quality for a much smaller file.');
+kv('Output:', 'A single combined PDF named images.pdf. Every page is a uniform A4 size, so the document looks consistent no matter what shapes the images are.');
+kv('What it does:', 'Auto-rotate using photo orientation, place each image centered on a uniform A4 page (scaled to fit, never stretched or cropped), and re-encode as JPEG at ~75% quality for a much smaller file.');
 kv('Bad files:', 'Any file it cannot read (corrupt, or not a real image) is skipped with a clear message, and the rest still convert — one bad file never breaks the whole batch.');
 
 // ---------- 3. How to use ----------
@@ -165,9 +165,9 @@ heading('4. How it works (the flow)');
 wrapped(
   'Browser sends the images -> the server receives them in memory -> each image is ' +
     'standardized (HEIC is converted to JPEG, orientation fixed) -> each image is compressed ' +
-    '(resized + re-encoded) -> all images are stitched into one PDF -> the PDF is sent back to ' +
-    'the browser as a download. Nothing is stored on disk; images are processed in memory and ' +
-    'discarded after the response.',
+    '(resized + re-encoded) -> each is placed centered on a uniform A4 page and the pages are ' +
+    'stitched into one PDF -> the PDF is sent back to the browser as a download. Nothing is ' +
+    'stored on disk; images are processed in memory and discarded after the response.',
 );
 
 // ---------- 5. Technical details ----------
@@ -178,7 +178,7 @@ kv('express', 'The web server. Serves the page and exposes the upload endpoint P
 kv('multer', 'Receives the uploaded files as in-memory buffers (multipart form handling), no temp files.');
 kv('sharp', 'Fast image engine: reads PNG/JPEG/WebP/TIFF/GIF/AVIF, auto-rotates via EXIF, resizes, and re-encodes to compressed JPEG.');
 kv('heic-convert', 'Decodes iPhone HEIC/HEIF photos to JPEG (sharp cannot read HEIC on its own).');
-kv('pdf-lib', 'Builds the final PDF in pure JavaScript: one embedded image per page.');
+kv('pdf-lib', 'Builds the final PDF in pure JavaScript: each image centered on its own uniform A4 page.');
 kv('node:test + supertest', 'Built-in test runner plus HTTP testing; simulates both web and mobile uploads.');
 spacer(6);
 wrapped('Project structure:', { f: bold });
@@ -187,23 +187,13 @@ bullet('server.js — the Express server and the /api/convert route');
 bullet('public/ — the web page (index.html, app.js, styles.css)');
 bullet('test/ — unit + upload tests (15 passing; covers every format + corrupt-file handling)');
 
-// ---------- 6. Deployment + the important note ----------
-heading('6. Deployment and the important note');
+// ---------- 6. Run it yourself ----------
+heading('6. Run it yourself (self-hosted)');
 wrapped(
-  'The tool is deployed live on Vercel so anyone can try it instantly in a browser. There is ' +
-    'one important limitation to know about:',
+  'The tool runs on your own computer (or any Node.js server) — there is no size limit and ' +
+    'nothing is uploaded to a third party. You need Node.js installed (version 18 or newer). ' +
+    'Then clone the repository and start it:',
 );
-spacer(4);
-wrapped('The live Vercel demo has a ~4.5 MB upload limit.', { f: bold, color: rgb(0.7, 0.2, 0.15) });
-wrapped(
-  'This is a hard limit of Vercel\'s serverless platform (it caps each upload request at ' +
-    '4.5 MB), not a limit of the tool itself. Because modern phone photos can be several MB ' +
-    'each, large images or large batches will be politely rejected on the live demo with a ' +
-    'message telling you to run it locally.',
-);
-spacer(4);
-wrapped('To use it with NO size limit, run it on your own computer.', { f: bold, color: ACCENT });
-wrapped('Clone the repository and start it — the local version has no upload cap at all:');
 spacer(4);
 // code-ish block
 const codeLines = [
@@ -218,11 +208,12 @@ for (const c of codeLines) {
   page.drawText(sanitize(c), { x: MARGIN + 6, y, size: 10, font: await pdf.embedFont(StandardFonts.Courier), color: TEXT });
   y -= 15;
 }
+spacer(4);
+wrapped('Open http://localhost:3000 in your browser. To use it from a phone, put the phone on the same Wi-Fi and visit your computer\'s local IP at port 3000.');
 spacer(8);
 wrapped('Links:', { f: bold });
-kv('Live demo (Vercel):', VERCEL_URL);
 kv('Source code (GitHub):', GITHUB_URL);
-kv('Branches:', 'main = full local version (no size limit); vercel = the deployed, size-capped version.');
+kv('To run tests:', 'npm test  (15 automated tests; covers every format and the A4 output).');
 
 // ---------- Save ----------
 const outPath = path.join(__dirname, '..', 'Project-Guide.pdf');

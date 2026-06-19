@@ -12,6 +12,16 @@ export const MAX_EDGE = 2000;
 // big file-size savings with no obvious loss of quality to the eye.
 export const JPEG_QUALITY = 75;
 
+// PDF page size, in PostScript points (72 points = 1 inch). Every page in the
+// output PDF is this exact size, so the document is uniform regardless of the
+// images' shapes. These are the dimensions of A4 portrait.
+export const PAGE_WIDTH = 595.28; // A4 width  (210 mm)
+export const PAGE_HEIGHT = 841.89; // A4 height (297 mm)
+
+// Blank margin kept around every image on the page, in points (~0.33 inch).
+// The image is scaled to fit inside (page minus margins) and centered.
+export const PAGE_MARGIN = 24;
+
 // The image types we advertise/support. sharp reads jpeg/png/webp/tiff/gif/avif
 // natively; heic is handled via heic-convert. We don't hard-reject on this list
 // anymore (browsers send inconsistent MIME types) — instead we TRY to decode
