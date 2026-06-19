@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Upload images (jpg/jpeg/png/heic), standardize + compress them, and download a single PDF.",
   "type": "module",
-  "engines": {
-    "node": "22.x"
-  },
   "scripts": {
     "start": "node server.js",
     "test": "node --test",

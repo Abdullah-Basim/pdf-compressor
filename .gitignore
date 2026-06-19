@@ -6,3 +6,4 @@ test/fixtures/*.heif
 .env*.local
 .playwright-mcp/
 ui-with-clear-and-remove.png
+.planning/

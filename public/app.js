@@ -16,14 +16,6 @@ const status = document.getElementById('status');
 //  - remove a single file, or clear everything.
 let selectedFiles = [];
 
-// Vercel (and most serverless hosts) cap an upload request body at ~4.5 MB.
-// We only enforce that cap when the app is running on a real host — when run
-// locally there is NO size limit at all. This lets the live demo fail gracefully
-// with a clear message instead of an opaque server error.
-const HOSTED =
-  location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
-const HOSTED_MAX_BYTES = 4.3 * 1024 * 1024; // a little under 4.5 MB for safety
-
 // Turn a byte count into something human ("1.4 MB").
 function humanSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -124,19 +116,6 @@ dropzone.addEventListener('drop', (e) => {
 // --- Convert: send the files and download the PDF ---
 convertBtn.addEventListener('click', async () => {
   if (selectedFiles.length === 0) return;
-
-  // On a hosted (Vercel) deployment, block uploads over the serverless body
-  // limit up front and tell the user how to handle large files (run locally).
-  if (HOSTED) {
-    const totalBytes = selectedFiles.reduce((sum, f) => sum + f.size, 0);
-    if (totalBytes > HOSTED_MAX_BYTES) {
-      setStatus(
-        'This hosted demo caps total upload at ~4.5 MB. For larger files, run the tool locally (see the project README) — no limit there.',
-        'error',
-      );
-      return;
-    }
-  }
 
   // Build the multipart body. The field name "images" MUST match the server's
   // upload.array('images').

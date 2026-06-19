@@ -63,13 +63,10 @@ app.post('/api/convert', upload.array('images'), async (req, res) => {
   }
 });
 
-// Start the server only when run directly (not when imported by a test, and not
-// on Vercel). `import.meta.url` is this file's URL; process.argv[1] is the file
-// Node was told to run. If they match, we were launched directly. On Vercel,
-// process.env.VERCEL is set and the app is invoked per-request instead, so we
-// must NOT call listen() there (it would hang waiting for a port Vercel never opens).
-const isRunDirectly =
-  process.argv[1] === fileURLToPath(import.meta.url) && !process.env.VERCEL;
+// Start the server only when run directly (not when imported by a test).
+// `import.meta.url` is this file's URL; process.argv[1] is the file Node was told
+// to run. If they match, we were launched directly.
+const isRunDirectly = process.argv[1] === fileURLToPath(import.meta.url);
 if (isRunDirectly) {
   const PORT = process.env.PORT || 3000;
   // host 0.0.0.0 so a phone on the same Wi-Fi can reach it via your LAN IP.
