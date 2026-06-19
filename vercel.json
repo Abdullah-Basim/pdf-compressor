@@ -3,8 +3,7 @@
   "installCommand": "npm install && npm install --include=optional --os=linux --cpu=x64 sharp",
   "functions": {
     "api/index.js": {
-      "maxDuration": 60,
-      "memory": 1024
+      "maxDuration": 60
     }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
