@@ -1,0 +1,9 @@
+node_modules/
+*.log
+test/fixtures/*.heic
+test/fixtures/*.heif
+.vercel
+.env*.local
+.playwright-mcp/
+ui-with-clear-and-remove.png
+.planning/

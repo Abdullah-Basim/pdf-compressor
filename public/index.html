@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport meta = the page scales correctly on phones -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Images → PDF</title>
+    <!-- Inline emoji favicon: avoids a 404 for /favicon.ico, no extra file needed. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="card">
+      <h1>Images → PDF</h1>
+      <p class="subtitle">
+        Upload JPG, PNG, or HEIC photos. They’re standardized, compressed, and
+        combined into one PDF.
+      </p>
+
+      <!-- The whole label is a big tap target. The real <input> is hidden but
+           still does the work — clicking the label opens the file picker.
+           accept lets phones offer the camera roll AND show HEIC files. -->
+      <label class="dropzone" id="dropzone">
+        <input
+          type="file"
+          id="fileInput"
+          name="images"
+          multiple
+          accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif"
+          hidden
+        />
+        <span class="dropzone-icon">＋</span>
+        <span class="dropzone-text">Tap to choose images<br />or drag them here</span>
+      </label>
+
+      <!-- A live list of what the user picked. -->
+      <ul id="fileList" class="file-list"></ul>
+
+      <div class="actions">
+        <button id="clearBtn" class="btn btn-secondary" disabled>Clear all</button>
+        <button id="convertBtn" class="btn" disabled>Create PDF</button>
+      </div>
+
+      <!-- Status / error messages appear here. aria-live = screen readers
+           announce updates. -->
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
