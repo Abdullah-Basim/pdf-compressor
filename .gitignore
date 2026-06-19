@@ -7,3 +7,6 @@ test/fixtures/*.heif
 .playwright-mcp/
 ui-with-clear-and-remove.png
 .planning/
+sample-images/
+test files/
+*.pdf

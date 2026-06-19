@@ -29,6 +29,28 @@ export async function makeJpeg(width = 100, height = 100, color = { r: 200, g: 6
     .toBuffer();
 }
 
+// Make a solid-color image in ANY sharp-writable format (png, jpeg, webp, tiff,
+// gif, avif). Used to prove the pipeline accepts every supported format.
+export async function makeImage(format, width = 120, height = 90, color = { r: 60, g: 140, b: 90 }) {
+  const img = sharp({ create: { width, height, channels: 3, background: color } });
+  return img.toFormat(format).toBuffer();
+}
+
+// Make a PNG WITH transparency (alpha), to test that transparent areas are
+// flattened onto a white background when converted to JPEG.
+export async function makeTransparentPng(width = 100, height = 100) {
+  return sharp({
+    create: { width, height, channels: 4, background: { r: 200, g: 30, b: 30, alpha: 0.5 } },
+  })
+    .png()
+    .toBuffer();
+}
+
+// A buffer that is NOT a valid image (mimics the user's corrupt sample files).
+export function makeCorruptBuffer() {
+  return Buffer.from('this is definitely not a real image file');
+}
+
 // Make a LARGE, noisy JPEG (truly random pixels). Two reasons we need noise:
 //  - random pixels are incompressible, so the file is genuinely large — that
 //    lets us prove compress() actually shrinks the byte size (JPEG vs JPEG)
@@ -44,12 +66,19 @@ export async function makeLargeNoisyJpeg(width = 3000, height = 2000) {
     .toBuffer();
 }
 
-// Look for a real HEIC sample the user may have dropped into test/fixtures/.
-// Returns the buffer if found, or null so HEIC tests can skip gracefully.
+// Find a real HEIC sample to test the HEIC path. First checks test/fixtures/ for
+// one the user dropped in; then falls back to known macOS sample HEICs (so the
+// test actually runs on a Mac). Returns the buffer, or null so the test can skip.
 export function findHeicFixture() {
-  if (!fs.existsSync(FIXTURES_DIR)) return null;
-  const match = fs
-    .readdirSync(FIXTURES_DIR)
-    .find((f) => /\.(heic|heif)$/i.test(f));
-  return match ? fs.readFileSync(path.join(FIXTURES_DIR, match)) : null;
+  if (fs.existsSync(FIXTURES_DIR)) {
+    const match = fs.readdirSync(FIXTURES_DIR).find((f) => /\.(heic|heif)$/i.test(f));
+    if (match) return fs.readFileSync(path.join(FIXTURES_DIR, match));
+  }
+  const macSamples = [
+    '/System/Library/Desktop Pictures/iMac Blue.heic',
+    '/System/Library/Desktop Pictures/iMac Pink.heic',
+    '/System/Library/CoreServices/DefaultDesktop.heic',
+  ];
+  const found = macSamples.find((p) => fs.existsSync(p));
+  return found ? fs.readFileSync(found) : null;
 }

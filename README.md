@@ -1,8 +1,13 @@
 # Images → PDF (compressor)
 
-Upload images (JPG / JPEG / PNG / HEIC), have them **standardized** (converted to
-upright JPEG) and **compressed**, then combined into a **single PDF** to download.
-Works the same from a phone or a computer. No limit on input image size.
+Upload images (JPG / JPEG / PNG / HEIC / WebP / TIFF / GIF / AVIF), have them
+**standardized** (converted to upright JPEG) and **compressed**, then combined into
+a **single PDF** to download. Works the same from a phone or a computer. No limit on
+input image size. Any file it can't read (corrupt or not a real image) is skipped
+with a clear message, and the rest still convert.
+
+> Need sample files? Run `node scripts/make-samples.js` to generate one valid image
+> per format in `sample-images/`.
 
 ## Run it
 
