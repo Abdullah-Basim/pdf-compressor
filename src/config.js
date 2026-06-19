@@ -12,13 +12,20 @@ export const MAX_EDGE = 2000;
 // big file-size savings with no obvious loss of quality to the eye.
 export const JPEG_QUALITY = 75;
 
-// The image MIME types we accept. Anything not in this list is rejected
-// with a clear error so the user knows why.
+// The image types we advertise/support. sharp reads jpeg/png/webp/tiff/gif/avif
+// natively; heic is handled via heic-convert. We don't hard-reject on this list
+// anymore (browsers send inconsistent MIME types) — instead we TRY to decode
+// every file and report any that can't be read. This list is used for the file
+// picker hint and for documentation.
 export const ALLOWED = [
   'image/jpeg', // covers .jpg AND .jpeg (same type)
   'image/png',
   'image/heic',
   'image/heif',
+  'image/webp',
+  'image/tiff',
+  'image/gif',
+  'image/avif',
 ];
 
 // Helper: is this file an HEIC/HEIF photo (the format iPhones use)?

@@ -146,7 +146,13 @@ convertBtn.addEventListener('click', async () => {
     a.remove();
     URL.revokeObjectURL(url); // free the temporary URL
 
-    setStatus('Done! Your PDF downloaded. Clear to start a new one.', 'success');
+    // The server lists any files it couldn't read (corrupt / not real images).
+    const skipped = res.headers.get('X-Skipped-Files');
+    if (skipped) {
+      setStatus(`PDF downloaded, but skipped unreadable file(s): ${skipped}`, 'error');
+    } else {
+      setStatus('Done! Your PDF downloaded. Clear to start a new one.', 'success');
+    }
   } catch (err) {
     setStatus(err.message, 'error');
   } finally {

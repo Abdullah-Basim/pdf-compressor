@@ -16,8 +16,8 @@
     <main class="card">
       <h1>Images → PDF</h1>
       <p class="subtitle">
-        Upload JPG, PNG, or HEIC photos. They’re standardized, compressed, and
-        combined into one PDF.
+        Upload JPG, PNG, HEIC, WebP, TIFF, GIF, or AVIF images. They’re
+        standardized, compressed, and combined into one PDF.
       </p>
 
       <!-- The whole label is a big tap target. The real <input> is hidden but
@@ -29,7 +29,7 @@
           id="fileInput"
           name="images"
           multiple
-          accept="image/jpeg,image/png,image/heic,image/heif,.jpg,.jpeg,.png,.heic,.heif"
+          accept="image/*,.jpg,.jpeg,.png,.heic,.heif,.webp,.tiff,.tif,.gif,.avif"
           hidden
         />
         <span class="dropzone-icon">＋</span>

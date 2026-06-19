@@ -44,7 +44,7 @@ test('error: no files uploaded -> 400', async () => {
   assert.match(res.body.error, /No images/);
 });
 
-test('error: unsupported file type -> 400 naming the bad file', async () => {
+test('error: a non-image (all unreadable) -> 422 naming the bad file', async () => {
   const res = await request(app)
     .post('/api/convert')
     .attach('images', Buffer.from('hello world'), {
@@ -52,6 +52,18 @@ test('error: unsupported file type -> 400 naming the bad file', async () => {
       contentType: 'text/plain',
     });
 
-  assert.equal(res.status, 400);
+  assert.equal(res.status, 422);
   assert.match(res.body.error, /notes\.txt/);
+});
+
+test('mixed batch: good image + corrupt file -> 200 PDF + X-Skipped-Files header', async () => {
+  const png = await makePng(300, 200);
+  const res = await request(app)
+    .post('/api/convert')
+    .attach('images', png, { filename: 'good.png', contentType: 'image/png' })
+    .attach('images', Buffer.from('garbage'), { filename: 'bad.png', contentType: 'image/png' });
+
+  assert.equal(res.status, 200);
+  assert.match(res.headers['content-type'], /application\/pdf/);
+  assert.match(res.headers['x-skipped-files'], /bad\.png/);
 });

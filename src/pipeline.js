@@ -1,41 +1,71 @@
 // pipeline.js
-// This is the "conductor": it runs the three steps in order and returns the PDF.
-// Both the web server AND the tests call this one function, so the actual logic
-// lives in exactly one place (and the route stays tiny).
+// This is the "conductor": it runs the steps and returns the PDF (plus a list of
+// any files it couldn't read). Both the web server AND the tests call this one
+// function, so the actual logic lives in exactly one place.
 //
-//   standardize  ->  compress  ->  buildPdf
+//   standardize  ->  compress   (per image)  ->  buildPdf  (all images)
 
 import { standardizeToJpeg } from './standardize.js';
 import { compress } from './compress.js';
 import { buildPdf } from './buildPdf.js';
 
+// A small helper to throw an error the web layer can turn into a specific HTTP
+// status (instead of a generic 500). Used for "your input was the problem" cases.
+function httpError(statusCode, message) {
+  const err = new Error(message);
+  err.statusCode = statusCode;
+  return err;
+}
+
+// Turn a messy library error into a short, human-friendly reason.
+function shortReason(err) {
+  const first = String(err?.message ?? 'unknown error').split('\n')[0];
+  return first.replace('Input buffer has corrupt header:', 'unreadable image —').trim();
+}
+
+// Standardize + compress a single file. Never throws: returns a result object so
+// one bad file can't abort the whole batch.
+async function processOne(file) {
+  try {
+    const upright = await standardizeToJpeg(file.buffer, file.originalname, file.mimetype);
+    const jpeg = await compress(upright);
+    return { ok: true, jpeg, name: file.originalname };
+  } catch (err) {
+    return { ok: false, name: file.originalname, reason: shortReason(err) };
+  }
+}
+
 /**
  * Turn a batch of uploaded image files into a single compressed PDF.
  *
  * @param {Array<{buffer: Buffer, originalname: string, mimetype: string}>} files
- *        - the uploaded files (this is exactly the shape multer gives us)
- * @returns {Promise<Uint8Array>} the finished PDF bytes
+ * @returns {Promise<{ pdf: Uint8Array, skipped: Array<{name: string, reason: string}> }>}
+ *   `pdf` is the finished PDF; `skipped` lists any files that couldn't be read.
  */
 export async function imagesToPdf(files) {
   if (!files || files.length === 0) {
-    // Fail fast with a clear message rather than producing an empty PDF.
-    throw new Error('No images provided.');
+    throw httpError(400, 'No images provided.');
   }
 
-  // Process every image through standardize -> compress.
-  // Promise.all runs them in parallel (faster for multiple photos), while
-  // .map preserves the original order, so the PDF pages stay in upload order.
-  const compressedJpegs = await Promise.all(
-    files.map(async (file) => {
-      const upright = await standardizeToJpeg(
-        file.buffer,
-        file.originalname,
-        file.mimetype,
-      );
-      return compress(upright);
-    }),
-  );
+  // Process every image in parallel; .map keeps the original (page) order.
+  const results = await Promise.all(files.map(processOne));
 
-  // Stitch the compressed images into one PDF.
-  return buildPdf(compressedJpegs);
+  const good = results.filter((r) => r.ok);
+  const skipped = results
+    .filter((r) => !r.ok)
+    .map((r) => ({ name: r.name, reason: r.reason }));
+
+  // If nothing could be read, fail with a clear, file-named message (422 =
+  // "we understood the request but the content was unprocessable").
+  if (good.length === 0) {
+    const names = skipped.map((s) => s.name).join(', ');
+    const noun = skipped.length === 1 ? 'this file' : 'these files';
+    throw httpError(
+      422,
+      `Couldn't read ${noun} — they may be corrupt or not a real image: ${names}.`,
+    );
+  }
+
+  const pdf = await buildPdf(good.map((g) => g.jpeg));
+  return { pdf, skipped };
 }
