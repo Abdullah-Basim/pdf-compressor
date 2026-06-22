@@ -1,0 +1,10 @@
+.git
+node_modules
+sample-images
+large-test-images
+test files
+*.pdf
+*.log
+.env
+.vercel
+.playwright-mcp
