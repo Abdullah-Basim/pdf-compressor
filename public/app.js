@@ -125,18 +125,55 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
-// --- Convert: upload the files (with progress) and download the PDF ---
+// The biggest edge we upload. The server re-caps at 2000px anyway, so shrinking
+// here doesn't change the final PDF — it just makes the UPLOAD small and fast,
+// which is what makes large batches reliable on phones / slow connections.
+const UPLOAD_MAX_EDGE = 2500;
+
+// Try to shrink one image in the browser before uploading. If the browser can
+// decode it (JPG/PNG/WebP/GIF, plus HEIC on iOS Safari), we downscale and
+// re-encode to JPEG — far smaller to upload. If it can't decode the format
+// (e.g. HEIC on Chrome, some TIFF/AVIF), we send the original and let the
+// server handle it. Never makes a file bigger.
+async function optimizeForUpload(file) {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, UPLOAD_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.85));
+    if (blob && blob.size < file.size) {
+      const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+      return new File([blob], name, { type: 'image/jpeg' });
+    }
+  } catch {
+    /* browser can't decode this format — send the original instead */
+  }
+  return file;
+}
+
+// --- Convert: optimize, upload (with progress), and download the PDF ---
 // We use XMLHttpRequest, not fetch, because it reports UPLOAD progress. On a
 // phone / slow connection a large upload takes a while, and without a visible
 // percentage it looks frozen — which is what made earlier attempts feel broken.
-convertBtn.addEventListener('click', () => {
+convertBtn.addEventListener('click', async () => {
   if (selectedFiles.length === 0) return;
-
-  const formData = new FormData();
-  for (const file of selectedFiles) formData.append('images', file);
 
   convertBtn.disabled = true;
   clearBtn.disabled = true;
+
+  // Shrink images in the browser first so the upload is small and reliable.
+  setStatus('Optimizing images…');
+  const filesToSend = await Promise.all(selectedFiles.map(optimizeForUpload));
+
+  const formData = new FormData();
+  for (const file of filesToSend) formData.append('images', file);
+
   setStatus('Uploading… 0%');
 
   const xhr = new XMLHttpRequest();

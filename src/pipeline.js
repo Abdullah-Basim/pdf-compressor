@@ -47,8 +47,15 @@ export async function imagesToPdf(files) {
     throw httpError(400, 'No images provided.');
   }
 
-  // Process every image in parallel; .map keeps the original (page) order.
-  const results = await Promise.all(files.map(processOne));
+  // Process in small concurrent batches (not all at once). Decoding many large
+  // images simultaneously can spike memory/CPU on a small server; batching keeps
+  // it stable while still being fast. Order is preserved for the PDF pages.
+  const CONCURRENCY = 4;
+  const results = [];
+  for (let i = 0; i < files.length; i += CONCURRENCY) {
+    const batch = files.slice(i, i + CONCURRENCY);
+    results.push(...(await Promise.all(batch.map(processOne))));
+  }
 
   const good = results.filter((r) => r.ok);
   const skipped = results
