@@ -113,50 +113,87 @@ dropzone.addEventListener('drop', (e) => {
   addFiles(Array.from(e.dataTransfer.files));
 });
 
-// --- Convert: send the files and download the PDF ---
-convertBtn.addEventListener('click', async () => {
+// Trigger a browser download for a Blob.
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+// --- Convert: upload the files (with progress) and download the PDF ---
+// We use XMLHttpRequest, not fetch, because it reports UPLOAD progress. On a
+// phone / slow connection a large upload takes a while, and without a visible
+// percentage it looks frozen — which is what made earlier attempts feel broken.
+convertBtn.addEventListener('click', () => {
   if (selectedFiles.length === 0) return;
 
-  // Build the multipart body. The field name "images" MUST match the server's
-  // upload.array('images').
   const formData = new FormData();
   for (const file of selectedFiles) formData.append('images', file);
 
   convertBtn.disabled = true;
   clearBtn.disabled = true;
-  setStatus('Working… compressing and building your PDF.');
+  setStatus('Uploading… 0%');
 
-  try {
-    const res = await fetch('/api/convert', { method: 'POST', body: formData });
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/convert');
+  xhr.responseType = 'blob';
+  xhr.timeout = 10 * 60 * 1000; // 10 minutes — generous for slow mobile uploads
 
-    if (!res.ok) {
-      // The server sends JSON like { error: "..." } on failure.
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Something went wrong.');
+  // Live upload progress; once bytes are all sent, the server is building the PDF.
+  xhr.upload.addEventListener('progress', (e) => {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 100);
+      setStatus(pct < 100 ? `Uploading… ${pct}%` : 'Processing your PDF…');
     }
+  });
+  xhr.upload.addEventListener('load', () => setStatus('Processing your PDF…'));
 
-    // Success: the body is the PDF. Turn it into a downloadable file.
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'images.pdf';
-    document.body.append(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url); // free the temporary URL
-
-    // The server lists any files it couldn't read (corrupt / not real images).
-    const skipped = res.headers.get('X-Skipped-Files');
-    if (skipped) {
-      setStatus(`PDF downloaded, but skipped unreadable file(s): ${skipped}`, 'error');
+  // Server responded.
+  xhr.addEventListener('load', async () => {
+    if (xhr.status === 200) {
+      downloadBlob(xhr.response, 'images.pdf');
+      const skipped = xhr.getResponseHeader('X-Skipped-Files');
+      setStatus(
+        skipped
+          ? `PDF downloaded, but skipped unreadable file(s): ${skipped}`
+          : 'Done! Your PDF downloaded. Clear to start a new one.',
+        skipped ? 'error' : 'success',
+      );
     } else {
-      setStatus('Done! Your PDF downloaded. Clear to start a new one.', 'success');
+      // Error status — try to read the server's JSON { error } message.
+      let message = 'Conversion failed. Please try again.';
+      try {
+        message = JSON.parse(await xhr.response.text()).error || message;
+      } catch {
+        /* non-JSON error body (e.g. a proxy error) — keep the default message */
+      }
+      setStatus(message, 'error');
     }
-  } catch (err) {
-    setStatus(err.message, 'error');
-  } finally {
-    // Re-enable the buttons (only if there are still files to act on).
     renderFileList();
-  }
+  });
+
+  // Connection dropped — common on mobile data with large uploads.
+  xhr.addEventListener('error', () => {
+    setStatus(
+      'Upload failed — check your internet connection and try again. On mobile data, try fewer images at a time or use Wi-Fi.',
+      'error',
+    );
+    renderFileList();
+  });
+
+  // Stalled too long.
+  xhr.addEventListener('timeout', () => {
+    setStatus(
+      'Upload timed out — your connection looks slow. Try fewer images at once, or switch to Wi-Fi.',
+      'error',
+    );
+    renderFileList();
+  });
+
+  xhr.send(formData);
 });
