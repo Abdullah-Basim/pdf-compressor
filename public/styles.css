@@ -1,16 +1,21 @@
 /* styles.css — minimal, mobile-first. Design tokens live at the top so colors
-   and spacing are defined once and reused everywhere. */
+   and spacing are defined once and reused everywhere.
+   Theme: matches the client's form design system (green / soft cream). */
 
 :root {
-  --bg: oklch(97% 0.01 250);
-  --surface: oklch(100% 0 0);
-  --text: oklch(25% 0.02 260);
-  --muted: oklch(55% 0.02 260);
-  --accent: oklch(58% 0.18 255);
-  --accent-press: oklch(50% 0.18 255);
-  --border: oklch(90% 0.01 260);
-  --radius: 16px;
+  --bg: #f5f1ed; /* soft cream page background */
+  --surface: #ffffff; /* card surface */
+  --text: #1f2c1c; /* dark brown text */
+  --muted: #6b6459; /* soft brown-gray for secondary text */
+  --accent: #558b2f; /* primary green */
+  --accent-press: #47761f; /* darker green for hover/press */
+  --accent-soft: #e8f5e0; /* light green accent */
+  --accent-mint: #d4eec8; /* mint accent */
+  --border: #d4ccc0; /* warm tan borders */
+  --error: #dc2626; /* alerts / errors */
+  --radius: 8px;
   --space: 1rem;
+  --shadow: 0 1px 3px rgba(31, 44, 28, 0.1); /* very subtle: 3px, 10% opacity */
 }
 
 * {
@@ -25,8 +30,13 @@ body {
   padding: var(--space);
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
+}
+
+code,
+pre {
+  font-family: "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .card {
@@ -36,12 +46,13 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: calc(var(--space) * 1.5);
-  box-shadow: 0 10px 30px oklch(25% 0.02 260 / 0.08);
+  box-shadow: var(--shadow);
 }
 
 h1 {
   margin: 0 0 0.25rem;
   font-size: 1.6rem;
+  font-weight: 700;
 }
 
 .subtitle {
@@ -69,7 +80,7 @@ h1 {
 .dropzone:hover,
 .dropzone.dragover {
   border-color: var(--accent);
-  background: oklch(58% 0.18 255 / 0.05);
+  background: var(--accent-soft);
 }
 
 .dropzone-icon {
@@ -94,11 +105,12 @@ h1 {
 .file-list li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
   padding: 0.5rem 0.75rem;
-  background: var(--bg);
-  border-radius: 10px;
+  background: var(--accent-soft);
+  border-radius: var(--radius);
 }
 
 /* The file name takes the free space; size + remove sit at the end. */
@@ -130,8 +142,8 @@ h1 {
 }
 
 .file-remove:hover {
-  background: oklch(55% 0.2 25 / 0.12);
-  color: oklch(55% 0.2 25);
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--error);
 }
 
 /* Row that holds the Clear + Create PDF buttons side by side. */
@@ -145,11 +157,12 @@ h1 {
   flex: 1;
   padding: 0.9rem 1rem;
   font-size: 1rem;
+  font-family: inherit;
   font-weight: 600;
-  color: white;
+  color: #ffffff;
   background: var(--accent);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius);
   cursor: pointer;
   transition: background 150ms ease, transform 80ms ease;
 }
@@ -170,13 +183,13 @@ h1 {
 /* Secondary (Clear) button: outlined, low-emphasis next to the primary. */
 .btn-secondary {
   flex: 0 0 auto;
-  color: var(--muted);
-  background: transparent;
+  color: var(--text);
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--bg);
+  background: var(--accent-mint);
   color: var(--text);
 }
 
@@ -188,9 +201,9 @@ h1 {
 }
 
 .status.error {
-  color: oklch(55% 0.2 25);
+  color: var(--error);
 }
 
 .status.success {
-  color: oklch(55% 0.15 150);
+  color: var(--accent);
 }
