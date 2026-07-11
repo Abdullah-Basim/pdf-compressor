@@ -1,12 +1,12 @@
-/* styles.css — minimal, mobile-first. Design tokens live at the top so colors
-   and spacing are defined once and reused everywhere.
-   Theme: matches the client's form design system (green / soft cream). */
+/* styles.css — mobile-first, matching the client's form design system:
+   soft cream/green page, centered airy layout (no card box), big pale dropzone,
+   full-width green action button. Design tokens live at the top. */
 
 :root {
   --bg: #f5f1ed; /* soft cream page background */
-  --surface: #ffffff; /* card surface */
-  --text: #1f2c1c; /* dark brown text */
-  --muted: #6b6459; /* soft brown-gray for secondary text */
+  --surface: #ffffff; /* white surfaces */
+  --text: #1f2c1c; /* dark brown/green text */
+  --muted: #6f8b63; /* muted green for secondary text (matches the form) */
   --accent: #558b2f; /* primary green */
   --accent-press: #47761f; /* darker green for hover/press */
   --accent-soft: #e8f5e0; /* light green accent */
@@ -14,7 +14,6 @@
   --border: #d4ccc0; /* warm tan borders */
   --error: #dc2626; /* alerts / errors */
   --radius: 8px;
-  --space: 1rem;
   --shadow: 0 1px 3px rgba(31, 44, 28, 0.1); /* very subtle: 3px, 10% opacity */
 }
 
@@ -25,9 +24,9 @@
 body {
   margin: 0;
   min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: var(--space);
+  display: flex;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 4rem) 1.25rem;
   background: var(--bg);
   color: var(--text);
   font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -39,40 +38,39 @@ pre {
   font-family: "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-.card {
+/* Open, card-less page — content sits directly on the cream background. */
+.page {
   width: 100%;
-  max-width: 460px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: calc(var(--space) * 1.5);
-  box-shadow: var(--shadow);
+  max-width: 720px;
+  text-align: center;
 }
 
 h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.6rem;
+  margin: 0 0 1rem;
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  margin: 0 0 1.25rem;
+  margin: 0 auto 2.25rem;
+  max-width: 34rem;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
 }
 
-/* The big tap-to-upload area. */
+/* The big tap-to-upload area — large, pale, dashed. */
 .dropzone {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem 1rem;
-  border: 2px dashed var(--border);
+  gap: 0.6rem;
+  padding: clamp(2.5rem, 8vw, 4.5rem) 1.5rem;
+  border: 2px dashed var(--accent-mint);
   border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.55);
   text-align: center;
-  color: var(--muted);
   cursor: pointer;
   transition: border-color 150ms ease, background 150ms ease;
 }
@@ -84,22 +82,37 @@ h1 {
 }
 
 .dropzone-icon {
-  font-size: 2rem;
-  line-height: 1;
+  width: 44px;
+  height: 44px;
   color: var(--accent);
+  margin-bottom: 0.25rem;
 }
 
-.dropzone-text {
+.dropzone-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.dropzone-formats {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* Reassuring helper line under the dropzone. */
+.helper {
+  margin: 1rem 0 1.5rem;
+  color: var(--muted);
   font-size: 0.95rem;
 }
 
 .file-list {
   list-style: none;
-  margin: 1rem 0 0;
+  margin: 0 0 1.25rem;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  text-align: left;
 }
 
 .file-list li {
@@ -107,8 +120,8 @@ h1 {
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
-  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.9rem;
   background: var(--accent-soft);
   border-radius: var(--radius);
 }
@@ -146,17 +159,11 @@ h1 {
   color: var(--error);
 }
 
-/* Row that holds the Clear + Create PDF buttons side by side. */
-.actions {
-  display: flex;
-  gap: 0.6rem;
-  margin-top: 1.25rem;
-}
-
+/* Primary action: full-width green button, white text. */
 .btn {
-  flex: 1;
-  padding: 0.9rem 1rem;
-  font-size: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  font-size: 1.05rem;
   font-family: inherit;
   font-weight: 600;
   color: #ffffff;
@@ -164,6 +171,7 @@ h1 {
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
+  box-shadow: var(--shadow);
   transition: background 150ms ease, transform 80ms ease;
 }
 
@@ -172,32 +180,44 @@ h1 {
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.99);
+  transform: scale(0.995);
 }
 
+/* Disabled = the soft sage look while there's nothing to convert yet. */
 .btn:disabled {
-  opacity: 0.45;
+  background: #a9c797;
   cursor: not-allowed;
 }
 
-/* Secondary (Clear) button: outlined, low-emphasis next to the primary. */
-.btn-secondary {
-  flex: 0 0 auto;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
+/* "Clear all" as a quiet text button under the main action. */
+.btn-clear {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--accent-mint);
+.btn-clear:hover:not(:disabled) {
   color: var(--text);
+  background: var(--accent-mint);
+}
+
+.btn-clear:disabled {
+  opacity: 0;
+  pointer-events: none; /* hidden until there are files to clear */
 }
 
 .status {
   margin: 1rem 0 0;
   min-height: 1.25rem;
-  font-size: 0.9rem;
-  text-align: center;
+  font-size: 0.95rem;
 }
 
 .status.error {

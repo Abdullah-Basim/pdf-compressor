@@ -5,13 +5,11 @@
     <!-- viewport meta = the page scales correctly on phones -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Images → PDF</title>
-    <!-- Inline emoji favicon: avoids a 404 for /favicon.ico, no extra file needed. -->
-    <link
-      rel="icon"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>"
-    />
-    <!-- Montserrat: the client's brand font (headings + body), swap keeps text visible
-         while it loads. -->
+    <!-- Site favicon (the WV logo). Drop the logo file in public/favicon.png. -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="favicon.png" />
+    <!-- Montserrat: the client's brand font (headings + body); swap keeps text
+         visible while it loads. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,11 +19,11 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="card">
+    <main class="page">
       <h1>Images → PDF</h1>
       <p class="subtitle">
-        Upload JPG, PNG, HEIC, WebP, TIFF, GIF, or AVIF images. They’re
-        standardized, compressed, and combined into one PDF.
+        Upload your images below and select Create PDF. They’ll be standardized,
+        compressed, and combined into one PDF for you.
       </p>
 
       <!-- The whole label is a big tap target. The real <input> is hidden but
@@ -40,17 +38,34 @@
           accept="image/*,.jpg,.jpeg,.png,.heic,.heif,.webp,.tiff,.tif,.gif,.avif"
           hidden
         />
-        <span class="dropzone-icon">＋</span>
-        <span class="dropzone-text">Tap to choose images<br />or drag them here</span>
+        <!-- Upload icon (inline SVG so it always matches the theme color). -->
+        <svg
+          class="dropzone-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 15V3" />
+          <path d="m7 8 5-5 5 5" />
+          <path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+        </svg>
+        <span class="dropzone-title">Click to upload or drag and drop</span>
+        <span class="dropzone-formats">JPG, PNG, HEIC, WebP, TIFF, GIF, or AVIF</span>
       </label>
+
+      <p class="helper">
+        You can add as many images as you like. Photos straight from your phone are fine.
+      </p>
 
       <!-- A live list of what the user picked. -->
       <ul id="fileList" class="file-list"></ul>
 
-      <div class="actions">
-        <button id="clearBtn" class="btn btn-secondary" disabled>Clear all</button>
-        <button id="convertBtn" class="btn" disabled>Create PDF</button>
-      </div>
+      <button id="convertBtn" class="btn" disabled>Create PDF</button>
+      <button id="clearBtn" class="btn-clear" disabled>Clear all</button>
 
       <!-- Status / error messages appear here. aria-live = screen readers
            announce updates. -->
